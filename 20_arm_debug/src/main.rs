@@ -31,6 +31,7 @@ const MMIO_BASE: u32 = 0x3F00_0000;
 mod gpio;
 mod mbox;
 mod uart;
+mod arm_debug;
 
 use core::sync::atomic::{compiler_fence, Ordering};
 
@@ -80,9 +81,13 @@ fn kernel_entry() -> ! {
         uart.puts("[i] Unable to query serial!\n");
     }
 
+    arm_debug::setup_debug();
+
+    let mut counter =0;
     // echo everything back
     loop {
-        uart.send(uart.getc());
+        counter += 1;
+        uart.hex(counter);
     }
 }
 
