@@ -32,7 +32,7 @@ mod debugger;
 
 fn kernel_entry() -> ! {
     // To change some GPIO pins to ARM debugger function.
-    // After this point, your debugger can attach to the CPU.
+    // After this point, a debugger can attach to the CPU.
     debugger::setup_debug();
 
     // Wait to be attached.
