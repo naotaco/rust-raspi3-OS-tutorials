@@ -32,7 +32,7 @@ It has standard [ARM JTAG 20 connector](http://infocenter.arm.com/help/index.jsp
 | 25    | TCK   | 9     |         |
 | 24    | TDO   | 13    |         |
 
-![Connected debugger](doc/raspi3-arm-usb-tiny-h.jpg){:height="50%" width="50%"}
+![Connected debugger](doc/raspi3-arm-usb-tiny-h.jpg)
 
 ## debugger.rs
 
