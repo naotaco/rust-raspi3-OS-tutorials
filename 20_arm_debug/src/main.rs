@@ -28,10 +28,10 @@
 
 const MMIO_BASE: u32 = 0x3F00_0000;
 
+mod arm_debug;
 mod gpio;
 mod mbox;
 mod uart;
-mod arm_debug;
 
 use core::sync::atomic::{compiler_fence, Ordering};
 
@@ -83,11 +83,17 @@ fn kernel_entry() -> ! {
 
     arm_debug::setup_debug();
 
-    let mut counter =0;
+    let mut counter = 0;
     // echo everything back
     loop {
         counter += 1;
-        uart.hex(counter);
+        match counter % 0x10000 == 0 {
+            false => (),
+            true => {
+                uart.hex(counter);
+                uart.puts("\n");
+            }
+        }
     }
 }
 
