@@ -28,10 +28,10 @@
 
 const MMIO_BASE: u32 = 0x3F00_0000;
 
+mod arm_debug;
 mod gpio;
 mod mbox;
 mod uart;
-mod arm_debug;
 
 use core::sync::atomic::{compiler_fence, Ordering};
 
@@ -72,10 +72,15 @@ fn kernel_entry() -> ! {
         Ok(()) => true,
     };
 
+    let main_id = get_part_id();
+
     if serial_avail {
         uart.puts("[i] My serial number is: 0x");
         uart.hex(mbox.buffer[6]);
         uart.hex(mbox.buffer[5]);
+        uart.puts("\n");
+        uart.puts("My part id is: ");
+        uart.hex(main_id);
         uart.puts("\n");
     } else {
         uart.puts("[i] Unable to query serial!\n");
@@ -83,12 +88,24 @@ fn kernel_entry() -> ! {
 
     arm_debug::setup_debug();
 
-    let mut counter =0;
+    let mut counter = 0;
     // echo everything back
     loop {
         counter += 1;
         uart.hex(counter);
     }
+}
+
+fn get_part_id() -> u32 {
+    // MRC p15, 0, <Rt>, c0, c0, 0 ; Read MIDR into Rt <- aarch32
+    // MRS <Xt>, MIDR_EL1
+    let mut v: u32;
+    unsafe {
+        asm!("MRS x5, MIDR_EL1"
+        :"={x5}"(v)
+        );
+    }
+    v
 }
 
 raspi3_boot::entry!(kernel_entry);
