@@ -4,9 +4,14 @@
 name = "kernel8"
 version = "0.1.0"
 dependencies = [
+ "nt_allocator 0.1.0",
  "raspi3_boot 0.1.0",
  "register 0.3.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "nt_allocator"
+version = "0.1.0"
 
 [[package]]
 name = "panic-abort"

@@ -25,13 +25,21 @@
 #![no_std]
 #![no_main]
 #![feature(asm)]
+#![feature(alloc)]
+
+extern crate alloc;
+
+use alloc::vec::Vec;
 
 const MMIO_BASE: u32 = 0x3F00_0000;
 
 mod arm_debug;
 mod gpio;
 mod mbox;
+mod memory;
 mod uart;
+
+extern crate nt_allocator;
 
 use core::sync::atomic::{compiler_fence, Ordering};
 
@@ -88,16 +96,27 @@ fn kernel_entry() -> ! {
 
     arm_debug::setup_debug();
 
+    let (v0, addr) = alloc_test();
+    uart.hex(v0);
+    uart.puts("\n");
+    uart.hex(addr);
+    uart.puts("\n");
+
     let mut counter = 0;
     // echo everything back
     loop {
         counter += 1;
-        uart.hex(counter);
     }
 }
 
+fn alloc_test() -> (u32, u32) {
+    let mut v: Vec<u32> = Vec::new();
+    v.push(0xdeadbeef);
+    let p: *const u32 = &(v[0]);
+    (v[0], p as u32)
+}
+
 fn get_part_id() -> u32 {
-    // MRC p15, 0, <Rt>, c0, c0, 0 ; Read MIDR into Rt <- aarch32
     // MRS <Xt>, MIDR_EL1 // => 410FD034
     let mut v: u32;
     unsafe {

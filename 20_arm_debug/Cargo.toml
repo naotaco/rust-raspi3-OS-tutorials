@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 raspi3_boot = { path = "raspi3_boot" }
+nt_allocator = { path = "raspi3_allocator"}
 register = "0.3.2"
 
 [package.metadata.cargo-xbuild]
