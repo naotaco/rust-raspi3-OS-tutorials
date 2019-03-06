@@ -98,7 +98,7 @@ fn kernel_entry() -> ! {
 
 fn get_part_id() -> u32 {
     // MRC p15, 0, <Rt>, c0, c0, 0 ; Read MIDR into Rt <- aarch32
-    // MRS <Xt>, MIDR_EL1
+    // MRS <Xt>, MIDR_EL1 // => 410FD034
     let mut v: u32;
     unsafe {
         asm!("MRS x5, MIDR_EL1"
