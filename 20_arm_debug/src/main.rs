@@ -45,10 +45,10 @@ use core::sync::atomic::{compiler_fence, Ordering};
 fn init_memory_header() {
     unsafe {
         let base = 0x0100_0000;
-        for i in 0..16 {
+        for i in 0..0x100 {
             core::ptr::write_volatile((base + i * 4) as *mut u32, 0);
         }
-        for i in 17..0x10000 {
+        for i in 0x101..0x10000 {
             core::ptr::write_volatile((base + i * 4) as *mut u32, i | 0xFF00_0000);
         }
     }
@@ -114,14 +114,24 @@ fn kernel_entry() -> ! {
     for i in 0..max {
         let value: u32 = i | 0x00FF_0000;
         v.push(value);
-        uart.puts("pushed addr: ");
+        let p: *const u32 = &v[i as usize];
+        uart.puts("pushed addr:0x ");
+        uart.hex(p as u32);
+        uart.puts(": ");
         uart.hex(value);
         uart.puts("\n");
     }
 
     let mut sum = 0;
     for i in 0..max {
-        sum += (v[i as usize]) & 0xFFFF;
+        let value = (v[i as usize]) & 0xFFFF;
+        sum += value;
+        let p: *const u32 = &v[i as usize];
+        uart.puts("pushed addr:0x ");
+        uart.hex(p as u32);
+        uart.puts(": ");
+        uart.hex(value);
+        uart.puts("\n");
     }
 
     uart.puts("sum: ");
