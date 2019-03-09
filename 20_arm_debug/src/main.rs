@@ -40,10 +40,22 @@ mod memory;
 mod uart;
 
 extern crate nt_allocator;
-
 use core::sync::atomic::{compiler_fence, Ordering};
 
+fn init_memory_header() {
+    unsafe {
+        let base = 0x0100_0000;
+        for i in 0..16 {
+            core::ptr::write_volatile((base + i * 4) as *mut u32, 0);
+        }
+        for i in 17..0x10000 {
+            core::ptr::write_volatile((base + i * 4) as *mut u32, i | 0xFF00_0000);
+        }
+    }
+}
+
 fn kernel_entry() -> ! {
+    init_memory_header();
     let mut mbox = mbox::Mbox::new();
     let uart = uart::Uart::new();
 
@@ -96,24 +108,27 @@ fn kernel_entry() -> ! {
 
     arm_debug::setup_debug();
 
-    let (v0, addr) = alloc_test();
-    uart.hex(v0);
-    uart.puts("\n");
-    uart.hex(addr);
-    uart.puts("\n");
-
-    let mut counter = 0;
-    // echo everything back
-    loop {
-        counter += 1;
-    }
-}
-
-fn alloc_test() -> (u32, u32) {
     let mut v: Vec<u32> = Vec::new();
-    v.push(0xdeadbeef);
-    let p: *const u32 = &(v[0]);
-    (v[0], p as u32)
+    // echo everything back
+    let max = 32;
+    for i in 0..max {
+        let value: u32 = i | 0x00FF_0000;
+        v.push(value);
+        uart.puts("pushed addr: ");
+        uart.hex(value);
+        uart.puts("\n");
+    }
+
+    let mut sum = 0;
+    for i in 0..max {
+        sum += (v[i as usize]) & 0xFFFF;
+    }
+
+    uart.puts("sum: ");
+    uart.hex(sum);
+    uart.puts("\n");
+
+    loop {}
 }
 
 fn get_part_id() -> u32 {

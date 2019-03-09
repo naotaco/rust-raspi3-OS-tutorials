@@ -7,27 +7,43 @@ use core::alloc::GlobalAlloc;
 use core::alloc::Layout;
 use core::ptr;
 
-struct BumpPointerAlloc {
-    head: usize,
-    end: usize,
+struct Raspi3Alloc {
+    head: u32,
+    end: u32,
 }
 
-unsafe impl Sync for BumpPointerAlloc {}
+unsafe impl Sync for Raspi3Alloc {}
 
-unsafe impl GlobalAlloc for BumpPointerAlloc {
+unsafe impl GlobalAlloc for Raspi3Alloc {
     unsafe fn alloc(&self, layout: core::alloc::Layout) -> *mut u8 {
-        let mut head = self.head;
+        let allocated_size = core::ptr::read_volatile(self.head as *mut u32);
+        let offset = 64; // for header
+        let pointer = self.head + allocated_size + offset; // to return
+                                                           // *allocated_size = 0;
 
-        let align = layout.align();
-        let res = head % align;
-        let start = if res == 0 { head } else { head + align - res };
-        if start + align > self.end {
-            // a null pointer signal an Out Of Memory condition
-            ptr::null_mut()
-        } else {
-            head = start + align;
-            start as *mut u8
-        }
+        //        let align = layout.align() as u32;
+        //        let res = self.head % align;
+        // let start = match res {
+        //     0 => self.head + *allocated_size,
+        //     _ => self.head + align - res + *allocated_size,
+        // };
+
+        // store next value
+        core::ptr::write_volatile(
+            self.head as *mut u32,
+            allocated_size + (layout.size() as u32),
+        );
+
+        pointer as *mut u8
+
+        // if start + align > self.end {
+        //     // a null pointer signal an Out Of Memory condition
+        //     ptr::null_mut()
+        // } else {
+        //     //            head = start + align;
+        //     ptr::write_bytes(start as *mut u8, 0, 4);
+        //     start as *mut u8
+        // }
     }
 
     unsafe fn dealloc(&self, _: *mut u8, _: Layout) {
@@ -36,7 +52,7 @@ unsafe impl GlobalAlloc for BumpPointerAlloc {
 }
 
 #[global_allocator]
-static HEAP: BumpPointerAlloc = BumpPointerAlloc {
+static HEAP: Raspi3Alloc = Raspi3Alloc {
     head: 0x0100_0000,
     end: 0x0200_0000,
 };
