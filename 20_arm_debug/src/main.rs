@@ -111,9 +111,25 @@ fn kernel_entry() -> ! {
     let mut v: Vec<u32> = Vec::new();
     // echo everything back
     let max = 32;
+    let mut last_pointer = 0 as *const u32;
     for i in 0..max {
         let value: u32 = i | 0x00FF_0000;
+
         v.push(value);
+
+        if last_pointer != &v[0] {
+            uart.puts("(Re)alloc detected!\nstart addr: ");
+            let start: *const u32 = &v[0];
+            uart.hex(start as u32);
+            uart.puts("\n");
+            uart.puts("len     : 0x");
+            uart.hex(v.len() as u32);
+            uart.puts("\ncapacity: 0x");
+            uart.hex(v.capacity() as u32);
+            uart.puts("\n");
+            last_pointer = &v[0];
+        }
+
         let p: *const u32 = &v[i as usize];
         uart.puts("pushed addr:0x ");
         uart.hex(p as u32);
@@ -123,6 +139,7 @@ fn kernel_entry() -> ! {
     }
 
     let mut sum = 0;
+
     for i in 0..max {
         let value = (v[i as usize]) & 0xFFFF;
         sum += value;
