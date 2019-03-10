@@ -58,3 +58,17 @@ objdump:
 
 nm:
 	cargo nm --target $(TARGET) -- kernel8 | sort
+
+define gen_gdb
+	$(XRUSTC_CMD) -- $1
+	cp $(CARGO_OUTPUT) kernel8_for_jtag
+	$(DOCKER_CMD) $(DOCKER_ARG_CURDIR) $(DOCKER_ARG_NET) $(CONTAINER_GDB) \
+	gdb-multiarch -q kernel8_for_jtag
+endef
+
+gdb: clean $(SOURCES)
+	 cargo xrustc --target=$(TARGET) --release -- -C debuginfo=2 
+
+gdb-opt0: clean $(SOURCES)
+	$(call gen_gdb,-C debuginfo=2 -C opt-level=0)
+
