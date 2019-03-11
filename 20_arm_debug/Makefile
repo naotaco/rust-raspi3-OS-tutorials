@@ -67,7 +67,8 @@ define gen_gdb
 endef
 
 gdb: clean $(SOURCES)
-	 cargo xrustc --target=$(TARGET) --release -- -C debuginfo=2 
+	 cargo xrustc --target=$(TARGET) --release -- -C debuginfo=2
+	 cp target/aarch64-unknown-none/release/kernel8 kernel8_debug
 
 gdb-opt0: clean $(SOURCES)
 	$(call gen_gdb,-C debuginfo=2 -C opt-level=0)
