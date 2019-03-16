@@ -67,9 +67,9 @@ fn kernel_entry() -> ! {
         },
     }
 
-    uart.puts("[1] Press a key to continue booting... ");
-    uart.getc();
-    uart.puts("Greetings fellow Rustacean!\n");
+    // uart.puts("[1] Press a key to continue booting... ");
+    // uart.getc();
+    // uart.puts("Greetings fellow Rustacean!\n");
 
     // get the board's unique serial number with a mailbox call
     mbox.buffer[0] = 8 * 4; // length of the message
@@ -138,6 +138,12 @@ fn kernel_entry() -> ! {
         uart.puts("\n");
     }
 
+    let mut fv: Vec<f64> = Vec::new();
+    for i in 0..10 {
+        fv.push(i as f64);
+        uart.hex(fv[i] as u32);
+    }
+
     let mut sum = 0;
 
     for i in 0..max {
@@ -155,6 +161,13 @@ fn kernel_entry() -> ! {
     uart.hex(sum);
     uart.puts("\n");
 
+    for i in 0..10 {
+        let v2 = fv[i] * 3.1415;
+        uart.hex(v2 as u32);
+        uart.puts("\n");
+    }
+
+    uart.puts("done\n");
     loop {}
 }
 

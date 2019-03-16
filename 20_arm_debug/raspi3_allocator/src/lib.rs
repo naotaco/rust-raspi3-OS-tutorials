@@ -18,7 +18,12 @@ unsafe impl GlobalAlloc for Raspi3Alloc {
     unsafe fn alloc(&self, layout: core::alloc::Layout) -> *mut u8 {
         let allocated_size = core::ptr::read_volatile(self.head as *mut u32);
         let offset = 0x100; // for header
-        let pointer = self.head + allocated_size + offset; // to return
+        let align = layout.align() as u32;
+        let align_offset = match allocated_size % align {
+            0 => 0,
+            (m) => align - m,
+        };
+        let pointer = self.head + allocated_size + offset + align_offset; // to return
 
         // ensure to keep requested size.
         if pointer + layout.size() as u32 > self.end {
@@ -35,7 +40,7 @@ unsafe impl GlobalAlloc for Raspi3Alloc {
         // store next value
         core::ptr::write_volatile(
             self.head as *mut u32,
-            allocated_size + (layout.size() as u32),
+            allocated_size + (layout.size() as u32) + align_offset,
         );
 
         pointer as *mut u8
