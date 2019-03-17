@@ -167,8 +167,20 @@ fn kernel_entry() -> ! {
         uart.puts("\n");
     }
 
+    uart.puts("GPIO1\n");
+    unsafe {
+        let gpio_value = core::ptr::read_volatile((0x3F20_001C) as *mut u32);
+        uart.hex(gpio_value);
+        set_1st_bit(0x3F20_001C);
+    }
     uart.puts("done\n");
     loop {}
+}
+
+unsafe fn set_1st_bit(addr: u32) {
+    let orig = core::ptr::read_volatile(addr as *mut u32);
+    let new = orig | 0x01;
+    core::ptr::write_volatile(addr as *mut u32, new);
 }
 
 fn get_part_id() -> u32 {
