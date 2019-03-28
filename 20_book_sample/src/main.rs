@@ -43,8 +43,8 @@ use nt_allocator::NtGlobalAlloc;
 
 #[global_allocator]
 static mut GLOBAL_ALLOCATOR: NtGlobalAlloc = NtGlobalAlloc {
-    head: 0x0100_0000,
-    end: 0x0200_0000,
+    base: 0x0100_0000,
+    size: 0x0400_0000,
 };
 
 fn alloc_test_u32(uart: &uart::Uart) {
