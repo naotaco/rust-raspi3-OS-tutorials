@@ -30,6 +30,7 @@
 
 const MMIO_BASE: u32 = 0x3F00_0000;
 
+mod arm_debug;
 mod gpio;
 mod mbox;
 mod uart;
@@ -49,6 +50,7 @@ static mut GLOBAL_ALLOCATOR: NtGlobalAlloc = NtGlobalAlloc {
 fn kernel_entry() -> ! {
     let mut mbox = mbox::Mbox::new();
     let uart = uart::Uart::new();
+    arm_debug::setup_debug();
 
     unsafe {
         GLOBAL_ALLOCATOR.init();
