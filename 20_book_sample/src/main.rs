@@ -79,6 +79,38 @@ fn alloc_test_u32(uart: &uart::Uart) {
     }
 }
 
+fn alloc_test_f64(uart: &uart::Uart) {
+    let max: u32 = 32;
+    let mut v: Vec<f64> = Vec::new();
+    let mut last_pointer = 0 as *const f64;
+
+    for i in 0..max {
+        let value = i as f64;
+
+        v.push(value);
+
+        if last_pointer != &v[0] {
+            uart.puts("(Re)alloc detected!\nstart addr: ");
+            let start: *const f64 = &v[0];
+            uart.hex(start as u32);
+            uart.puts("\n");
+            uart.puts("len     : 0x");
+            uart.hex(v.len() as u32);
+            uart.puts("\ncapacity: 0x");
+            uart.hex(v.capacity() as u32);
+            uart.puts("\n");
+            last_pointer = &v[0];
+        }
+    }
+
+    for i in 0..max {
+        uart.hex(i);
+        uart.puts(": ");
+        uart.hex(v[i as usize] as u32);
+        uart.puts("\n")
+    }
+}
+
 fn kernel_entry() -> ! {
     let mut mbox = mbox::Mbox::new();
     let uart = uart::Uart::new();
@@ -99,6 +131,7 @@ fn kernel_entry() -> ! {
     uart.puts("Greetings fellow Rustacean!\n");
 
     alloc_test_u32(&uart);
+    alloc_test_f64(&uart);
 
     loop {}
 }
