@@ -62,7 +62,14 @@ clean:
 	cargo clean
 
 objdump:
-	cargo objdump --target $(TARGET) -- -disassemble -print-imm-hex kernel8
+	cargo objdump --target $(TARGET) -- -disassemble -print-imm-hex kernel8_debug
 
 nm:
-	cargo nm --target $(TARGET) -- kernel8 | sort
+	cargo nm --target $(TARGET) -- kernel8_debug | sort
+
+gdb: clean $(SOURCES)
+	 cargo xrustc --target=$(TARGET) --release -- -C debuginfo=2
+	 cp target/aarch64-unknown-none/release/kernel8 kernel8_debug
+
+gdb-opt0: clean $(SOURCES)
+	$(call gen_gdb,-C debuginfo=2 -C opt-level=0)

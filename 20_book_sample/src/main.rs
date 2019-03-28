@@ -47,6 +47,38 @@ static mut GLOBAL_ALLOCATOR: NtGlobalAlloc = NtGlobalAlloc {
     end: 0x0200_0000,
 };
 
+fn alloc_test_u32(uart: &uart::Uart) {
+    let max: u32 = 32;
+    let mut v: Vec<u32> = Vec::new();
+    let mut last_pointer = 0 as *const u32;
+
+    for i in 0..max {
+        let value = i as u32;
+
+        v.push(value);
+
+        if last_pointer != &v[0] {
+            uart.puts("(Re)alloc detected!\nstart addr: ");
+            let start: *const u32 = &v[0];
+            uart.hex(start as u32);
+            uart.puts("\n");
+            uart.puts("len     : 0x");
+            uart.hex(v.len() as u32);
+            uart.puts("\ncapacity: 0x");
+            uart.hex(v.capacity() as u32);
+            uart.puts("\n");
+            last_pointer = &v[0];
+        }
+    }
+
+    for i in 0..max {
+        uart.hex(i);
+        uart.puts(": ");
+        uart.hex(v[i as usize]);
+        uart.puts("\n")
+    }
+}
+
 fn kernel_entry() -> ! {
     let mut mbox = mbox::Mbox::new();
     let uart = uart::Uart::new();
@@ -66,13 +98,9 @@ fn kernel_entry() -> ! {
 
     uart.puts("Greetings fellow Rustacean!\n");
 
-    let mut vector: Vec<u32> = Vec::new();
-    vector.push(1);
+    alloc_test_u32(&uart);
 
-    // echo everything back
-    loop {
-        uart.send(uart.getc());
-    }
+    loop {}
 }
 
 raspi3_boot::entry!(kernel_entry);
